@@ -1,0 +1,1819 @@
+<title>Fluxo QA–IA · CITWEB/CITNET</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #060c1a;
+    --surface:   #0e1829;
+    --card:      #132035;
+    --card-2:    #192840;
+    --border:    #1c3050;
+    --accent:    #00cba9;
+    --accent-dim:#007f69;
+    --accent-bg: rgba(0,203,169,.08);
+    --ok:        #22d3a0;
+    --ok-bg:     rgba(34,211,160,.08);
+    --fail:      #f43f5e;
+    --fail-bg:   rgba(244,63,94,.08);
+    --warn:      #fbbf24;
+    --warn-bg:   rgba(251,191,36,.08);
+    --gate:      #a78bfa;
+    --gate-bg:   rgba(167,139,250,.1);
+    --text:      #c4d3e6;
+    --text-strong:#eef2f8;
+    --text-muted: #4a6280;
+    --mono: 'Cascadia Code','Fira Code','Consolas','Courier New',monospace;
+    --sans: 'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.65;
+    min-height: 100vh;
+  }
+
+  /* ── LAYOUT SHELL ── */
+  .page { max-width: 900px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: .75rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    color: var(--text-strong);
+    line-height: 1.15;
+    text-wrap: balance;
+    margin-bottom: 16px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--text);
+    max-width: 600px;
+    margin-bottom: 40px;
+  }
+
+  /* ── METRIC STRIP ── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .metric {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .metric-value {
+    font-family: var(--mono);
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .metric-value.accent { color: var(--accent); }
+  .metric-label {
+    font-size: .75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  /* ── SECTION SHELL ── */
+  .section { margin-top: 64px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .section-tag {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    border-radius: 4px;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+  .section-tag.gate-tag {
+    background: var(--gate-bg);
+    color: var(--gate);
+    border-color: #6d57c4;
+  }
+  .section h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+  .section-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── CONTEXT GRID ── */
+  .context-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 600px) { .context-grid { grid-template-columns: 1fr; } }
+
+  .ctx-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px;
+  }
+  .ctx-card-label {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .ctx-card-title {
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--text-strong);
+    margin-bottom: 8px;
+  }
+  .chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: .7rem;
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 4px;
+    padding: 3px 8px;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline {
+    position: relative;
+    padding-left: 40px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--border) 80%);
+    border-radius: 2px;
+  }
+
+  .tl-step {
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .tl-step + .tl-step { margin-top: 4px; }
+
+  .tl-node {
+    position: absolute;
+    left: -29px;
+    top: 18px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 2px solid var(--accent-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: .65rem;
+    font-weight: 700;
+    color: var(--accent);
+    z-index: 1;
+  }
+
+  .tl-body {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    transition: border-color .15s;
+  }
+  .tl-body:hover { border-color: var(--accent-dim); }
+
+  .tl-title {
+    font-size: .97rem;
+    font-weight: 600;
+    color: var(--text-strong);
+    margin-bottom: 4px;
+  }
+  .tl-desc {
+    font-size: .875rem;
+    color: var(--text);
+    line-height: 1.55;
+  }
+  .tl-detail {
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── GATE STEP ── */
+  .tl-gate {
+    position: relative;
+    margin: 12px 0;
+  }
+  .tl-gate-inner {
+    background: var(--gate-bg);
+    border: 1px dashed #6d57c4;
+    border-radius: 8px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .gate-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .gate-text {}
+  .gate-label {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--gate);
+    margin-bottom: 4px;
+  }
+  .gate-desc {
+    font-size: .875rem;
+    color: var(--text);
+  }
+
+  /* ── BUG FLOW ── */
+  .bug-flow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .bf-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    position: relative;
+  }
+  .bf-card.gate-card {
+    background: var(--gate-bg);
+    border-color: #6d57c4;
+    border-style: dashed;
+  }
+  .bf-num {
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .bf-title {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--text-strong);
+    margin-bottom: 4px;
+  }
+  .bf-desc {
+    font-size: .8rem;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .bf-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--border);
+    font-size: 1.2rem;
+    padding: 0 4px;
+  }
+
+  /* ── RESULTS ── */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px;
+  }
+  .result-icon { font-size: 1.5rem; margin-bottom: 10px; }
+  .result-title {
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--text-strong);
+    margin-bottom: 8px;
+  }
+  .result-list {
+    list-style: none;
+    padding: 0;
+    font-size: .85rem;
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .result-list li::before {
+    content: '›';
+    color: var(--accent);
+    margin-right: 7px;
+    font-weight: 700;
+  }
+  .badge-inline {
+    font-family: var(--mono);
+    font-size: .7rem;
+    padding: 1px 6px;
+    border-radius: 3px;
+    vertical-align: middle;
+  }
+  .badge-crit { background: var(--fail-bg); color: var(--fail); border: 1px solid rgba(244,63,94,.3); }
+  .badge-high { background: var(--warn-bg); color: var(--warn); border: 1px solid rgba(251,191,36,.3); }
+  .badge-ok   { background: var(--ok-bg);   color: var(--ok);   border: 1px solid rgba(34,211,160,.3); }
+
+  /* ── CHALLENGES ── */
+  .challenges { display: flex; flex-direction: column; gap: 12px; }
+  .challenge {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 22px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .challenge.ch-warn  { border-left-color: var(--warn); }
+  .challenge.ch-fail  { border-left-color: var(--fail); }
+  .challenge.ch-ok    { border-left-color: var(--ok); }
+  .challenge.ch-gate  { border-left-color: var(--gate); }
+  .challenge.ch-info  { border-left-color: var(--accent); }
+  .ch-num {
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-top: 2px;
+    min-width: 24px;
+  }
+  .ch-title {
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--text-strong);
+    margin-bottom: 4px;
+  }
+  .ch-desc {
+    font-size: .85rem;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .ch-resolution {
+    margin-top: 6px;
+    font-size: .8rem;
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-left { font-size: .8rem; color: var(--text-muted); }
+  .footer-right {
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 16px;
+  }
+  .footer-right span { color: var(--accent); }
+
+  /* ── MISC ── */
+  .nowrap { white-space: nowrap; }
+  code {
+    font-family: var(--mono);
+    font-size: .82em;
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .metric, .tl-body, .result-card, .challenge {
+      animation: fadeUp .3s ease both;
+    }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TABS ── */
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    padding: 20px 0 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  .tab-btn {
+    font-family: var(--sans);
+    font-size: .875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+    margin-bottom: -1px;
+    border-radius: 4px 4px 0 0;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--accent-bg);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── MANUAL ── */
+  .manual-hero {
+    padding: 56px 0 44px;
+    border-bottom: 1px solid var(--border);
+  }
+  .manual-hero h1 {
+    font-size: clamp(1.7rem, 4vw, 2.6rem);
+    font-weight: 700;
+    color: var(--text-strong);
+    line-height: 1.2;
+    text-wrap: balance;
+    margin-bottom: 14px;
+  }
+  .manual-hero p {
+    font-size: 1rem;
+    color: var(--text);
+    max-width: 580px;
+    line-height: 1.65;
+  }
+  .prereq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .prereq-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .prereq-icon { font-size: 1.3rem; margin-bottom: 8px; }
+  .prereq-title { font-size: .9rem; font-weight: 600; color: var(--text-strong); margin-bottom: 4px; }
+  .prereq-desc  { font-size: .8rem; color: var(--text); line-height: 1.5; }
+
+  .skill-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .skill-card + .skill-card { margin-top: 10px; }
+  .skill-card.sk-warn  { border-left-color: var(--warn); }
+  .skill-card.sk-ok    { border-left-color: var(--ok); }
+  .skill-card.sk-gate  { border-left-color: var(--gate); }
+  .skill-badge {
+    font-family: var(--mono);
+    font-size: .72rem;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    border-radius: 4px;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+  .skill-badge.sk-warn { background: var(--warn-bg); color: var(--warn); border-color: rgba(251,191,36,.35); }
+  .skill-badge.sk-ok   { background: var(--ok-bg);   color: var(--ok);   border-color: rgba(34,211,160,.35); }
+  .skill-badge.sk-gate { background: var(--gate-bg);  color: var(--gate); border-color: rgba(167,139,250,.35); }
+  .skill-name  { font-size: .95rem; font-weight: 600; color: var(--text-strong); margin-bottom: 4px; }
+  .skill-desc  { font-size: .85rem; color: var(--text); line-height: 1.55; }
+  .skill-when  { margin-top: 6px; font-size: .8rem; color: var(--text-muted); font-style: italic; }
+
+  .step-list { display: flex; flex-direction: column; gap: 10px; }
+  .step-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .step-n {
+    font-family: var(--mono);
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-title { font-size: .95rem; font-weight: 600; color: var(--text-strong); margin-bottom: 4px; }
+  .step-desc  { font-size: .85rem; color: var(--text); line-height: 1.6; }
+  .step-code  {
+    margin-top: 10px;
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: var(--mono);
+    font-size: .78rem;
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .step-code .hl { color: var(--accent); }
+  .step-code .cm { color: var(--text-muted); }
+
+  .principle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+  }
+  .principle-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .principle-icon { font-size: 1.4rem; margin-bottom: 8px; }
+  .principle-title { font-size: .9rem; font-weight: 600; color: var(--text-strong); margin-bottom: 6px; }
+  .principle-desc  { font-size: .82rem; color: var(--text); line-height: 1.6; }
+  .principle-rule  {
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--accent);
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+
+  .tmpl-block {
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px;
+    overflow-x: auto;
+  }
+  .tmpl-block pre {
+    font-family: var(--mono);
+    font-size: .8rem;
+    color: var(--text);
+    line-height: 1.8;
+    white-space: pre;
+  }
+  .tmpl-block .t-key   { color: var(--accent); }
+  .tmpl-block .t-val   { color: var(--ok); }
+  .tmpl-block .t-cmt   { color: var(--text-muted); }
+  .tmpl-block .t-sec   { color: var(--warn); font-weight: 600; }
+
+  .checklist { display: flex; flex-direction: column; gap: 6px; }
+  .cl-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: .875rem;
+    color: var(--text);
+  }
+  .cl-box {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .callout {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-dim);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-size: .875rem;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .callout strong { color: var(--accent); }
+</style>
+
+<div class="page">
+
+  <!-- TABS NAV -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="fluxo">Fluxo de Trabalho</button>
+    <button class="tab-btn" data-tab="manual">Manual para QAs</button>
+  </nav>
+
+  <!-- ══ TAB 1: FLUXO ══ -->
+  <div id="tab-fluxo" class="tab-panel active">
+
+  <!-- ══ HERO ══ -->
+  <header class="hero">
+    <p class="hero-eyebrow">CITWEB / CITNET · Sprints 4–9 · 2026</p>
+    <h1>Fluxo de Trabalho <em>QA × IA</em></h1>
+    <p class="hero-sub">
+      Como integramos o Claude ao ciclo de qualidade do sistema — da leitura do card no Azure DevOps
+      até a publicação do plano e a notificação do time no Teams.
+    </p>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-value accent">9+</div>
+        <div class="metric-label">Sprints cobertas</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">30+</div>
+        <div class="metric-label">Cards (PBIs + Bugs)</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">500+</div>
+        <div class="metric-label">Casos de teste</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value accent">241</div>
+        <div class="metric-label">CTs automatizados</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">7</div>
+        <div class="metric-label">Seguradoras testadas</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ CONTEXTO ══ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-tag">Contexto</span>
+      <h2>Ecossistema e Ferramentas</h2>
+      <span class="section-rule"></span>
+    </div>
+
+    <div class="context-grid">
+      <div class="ctx-card">
+        <div class="ctx-card-label">Sistemas testados</div>
+        <div class="ctx-card-title">CITWEB / CITNET</div>
+        <p style="font-size:.85rem;color:var(--text);line-height:1.55">
+          Nacional e Internacional. Módulos: Apólice, Averbação,
+          Condição Comercial, Subgrupo, Conversor, Prévia, Faturamento,
+          WI/Siscomex, Caixas Postais.
+        </p>
+        <div class="chip-list">
+          <span class="chip">RCTR-C ramo 54</span>
+          <span class="chip">RCA-C ramo 56</span>
+          <span class="chip">RCTA-C ramo 58</span>
+          <span class="chip">RCTF-C ramo 38</span>
+          <span class="chip">TN ramo 21</span>
+          <span class="chip">RCV ramo 59</span>
+        </div>
+      </div>
+
+      <div class="ctx-card">
+        <div class="ctx-card-label">Seguradoras</div>
+        <div class="ctx-card-title">7 ambientes HML</div>
+        <div class="chip-list">
+          <span class="chip">AXA</span>
+          <span class="chip">KOVR</span>
+          <span class="chip">MITSUI</span>
+          <span class="chip">HDI-YELUM</span>
+          <span class="chip">FAIRFAX</span>
+          <span class="chip">ZURICH</span>
+          <span class="chip">NSTECH</span>
+        </div>
+      </div>
+
+      <div class="ctx-card">
+        <div class="ctx-card-label">Ferramentas de automação</div>
+        <div class="ctx-card-title">Stack operacional</div>
+        <div class="chip-list">
+          <span class="chip">Playwright MCP</span>
+          <span class="chip">Python / openpyxl</span>
+          <span class="chip">PowerShell</span>
+          <span class="chip">Azure DevOps API</span>
+          <span class="chip">GitHub Pages</span>
+          <span class="chip">Teams webhook</span>
+        </div>
+      </div>
+
+      <div class="ctx-card">
+        <div class="ctx-card-label">Saídas produzidas</div>
+        <div class="ctx-card-title">Artefatos por card</div>
+        <ul class="result-list">
+          <li>Plano de teste HTML interativo</li>
+          <li>Excel com passos detalhados</li>
+          <li>Screenshots de evidência</li>
+          <li>Bug reports HTML</li>
+          <li>Cards no AzDO com anexos</li>
+          <li>Notificação Teams</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FLUXO PRINCIPAL ══ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-tag">Fluxo Principal</span>
+      <h2>Do Card à Execução e Encerramento</h2>
+      <span class="section-rule"></span>
+    </div>
+
+    <div class="timeline">
+
+      <!-- 1 -->
+      <div class="tl-step">
+        <div class="tl-node">1</div>
+        <div class="tl-body">
+          <div class="tl-title">Consultar o board da sprint</div>
+          <div class="tl-desc">
+            Query WIQL no Azure DevOps — lista todos os cards da iteração atual com status,
+            tipo (PBI ou Bug) e responsável.
+          </div>
+          <div class="tl-detail">POST /wit/wiql · IterationPath = 'CITWEB\Sprint_N'</div>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="tl-step">
+        <div class="tl-node">2</div>
+        <div class="tl-body">
+          <div class="tl-title">Ler o card completo</div>
+          <div class="tl-desc">
+            Título, descrição, critérios de aceite, tasks filhas, seguradora e ramo alvo.
+            Consultar também os manuais do sistema (<code>manuais ia\</code>) e as features
+            documentadas (<code>features\</code>) antes de formular qualquer CT.
+          </div>
+        </div>
+      </div>
+
+      <!-- GATE 1 -->
+      <div class="tl-gate">
+        <div class="tl-gate-inner">
+          <div class="gate-icon">⏸</div>
+          <div class="gate-text">
+            <div class="gate-label">Gate 1 — Card incompleto?</div>
+            <div class="gate-desc">
+              Se critérios de aceite ausentes, regra ambígua, ramo ou ambiente não declarado →
+              <strong style="color:var(--gate)">postar comentário no card</strong> com as dúvidas,
+              mencionando <code>@fabiola.costa</code>. Não avançar sem resposta.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="tl-step">
+        <div class="tl-node">3</div>
+        <div class="tl-body">
+          <div class="tl-title">Mapear a tela via Playwright MCP</div>
+          <div class="tl-desc">
+            Navegar pela UI real — sempre partindo do login, clicando pelo menu, nunca
+            acessando URL direta. Tirar snapshot de todos os campos, expandir abas,
+            executar o fluxo completo uma vez para descobrir modais e comportamentos
+            não óbvios.
+          </div>
+          <div class="tl-detail">
+            Playwright MCP · browser_navigate → browser_click → browser_snapshot
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="tl-step">
+        <div class="tl-node">4</div>
+        <div class="tl-body">
+          <div class="tl-title">Rascunhar os Casos de Teste</div>
+          <div class="tl-desc">
+            Formato <code>CT-XXX-NNN</code>. Cada clique, campo e modal = um passo separado.
+            Passos com dados reais da tela — nunca inventados. Último passo sempre começa
+            com "Verificar que…". Para CNPJ: pares padrão/alfanumérico lado a lado.
+          </div>
+        </div>
+      </div>
+
+      <!-- GATE 2 -->
+      <div class="tl-gate">
+        <div class="tl-gate-inner">
+          <div class="gate-icon">⏸</div>
+          <div class="gate-text">
+            <div class="gate-label">Gate 2 — Revisão individual de cada CT</div>
+            <div class="gate-desc">
+              Apresentar um CT (ou par padrão/alfanumérico) de cada vez ao Wesley.
+              Aguardar aprovação explícita ou correção antes de passar para o próximo.
+              <strong style="color:var(--gate)">Nunca gravar sem aprovação de todos os CTs do lote.</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="tl-step">
+        <div class="tl-node">5</div>
+        <div class="tl-body">
+          <div class="tl-title">Gravar passos no Excel</div>
+          <div class="tl-desc">
+            Script Python com <code>openpyxl</code> — escreve os passos na coluna H
+            (col 8) da aba correta. Wesley fecha o arquivo antes da execução.
+          </div>
+          <div class="tl-detail">row = CT_number + 12 · wb.save() após todas as células</div>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="tl-step">
+        <div class="tl-node">6</div>
+        <div class="tl-body">
+          <div class="tl-title">Gerar o HTML do plano de teste</div>
+          <div class="tl-desc">
+            Tema escuro obrigatório. Estrutura: header com badge PBI/Bug, dashboard de métricas
+            com progress bar, CTs em accordion (<code>ct-block/ct-bar/ct-panel</code>),
+            matriz de rastreabilidade e seção de evidências por CT.
+          </div>
+          <div class="tl-detail">
+            Template: sprint-7-citweb/pbi-6841/index.html ·
+            Vars: --bg #0f1114, --accent #3b9eff
+          </div>
+        </div>
+      </div>
+
+      <!-- GATE 3 -->
+      <div class="tl-gate">
+        <div class="tl-gate-inner">
+          <div class="gate-icon">⏸</div>
+          <div class="gate-text">
+            <div class="gate-label">Gate 3 — Revisão do plano completo</div>
+            <div class="gate-desc">
+              Wesley revisa o HTML aberto no browser — conteúdo, estrutura, métricas,
+              evidências. <strong style="color:var(--gate)">Nunca publicar sem aprovação explícita.</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7 -->
+      <div class="tl-step">
+        <div class="tl-node">7</div>
+        <div class="tl-body">
+          <div class="tl-title">Publicar no GitHub Pages</div>
+          <div class="tl-desc">
+            Script <code>publicar.py</code> faz push da pasta
+            <code>docs/sprint-N-citweb/&lt;card&gt;/</code> para o repositório
+            <code>wesleycalegari/planos-de-teste</code>.
+          </div>
+          <div class="tl-detail">URL: https://wesleycalegari.github.io/planos-de-teste/sprint-N-citweb/bug-XXXX/</div>
+        </div>
+      </div>
+
+      <!-- 8 -->
+      <div class="tl-step">
+        <div class="tl-node">8</div>
+        <div class="tl-body">
+          <div class="tl-title">Comentar no Azure DevOps</div>
+          <div class="tl-desc">
+            Comentário HTML rico com link clicável para o plano publicado +
+            menção <code>@fabiola.costa</code> solicitando validação.
+          </div>
+          <div class="tl-detail">POST /wit/workItems/{id}/comments · api-version 7.1-preview.3</div>
+        </div>
+      </div>
+
+      <!-- GATE 4 -->
+      <div class="tl-gate">
+        <div class="tl-gate-inner">
+          <div class="gate-icon">⏸</div>
+          <div class="gate-text">
+            <div class="gate-label">Gate 4 — Validação da Fabíola + PBI liberado para homologação</div>
+            <div class="gate-desc">
+              Aguardar a validação do plano por <code>@fabiola.costa</code> e a transição do card
+              para <strong style="color:var(--gate)">"Pronto para Homologação"</strong>
+              antes de iniciar qualquer execução.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9 -->
+      <div class="tl-step">
+        <div class="tl-node">9</div>
+        <div class="tl-body">
+          <div class="tl-title">Executar o plano de teste</div>
+          <div class="tl-desc">
+            Execução de todos os cenários via Playwright MCP, navegando pelo menu real.
+            Cada CT recebe screenshot de evidência, classificação (aprovado / reprovado / bloqueado)
+            e o resultado é atualizado no HTML do plano em tempo real.
+            Se algum CT reprovar, o sub-fluxo de bug é acionado.
+          </div>
+          <div class="tl-detail">Playwright MCP · browser_snapshot · evidencias/ por CT · updateDash()</div>
+        </div>
+      </div>
+
+      <!-- 10 -->
+      <div class="tl-step">
+        <div class="tl-node">10</div>
+        <div class="tl-body">
+          <div class="tl-title">Comentar no card com resultado completo</div>
+          <div class="tl-desc">
+            Após todos os cenários aprovados: comentário HTML rico no card do AzDO com
+            banner de status, tabela de resultados por CT, evidências vinculadas como
+            attachments e link para o plano publicado.
+          </div>
+          <div class="tl-detail">POST /wit/workItems/{id}/comments · upload evidências via /wit/attachments</div>
+        </div>
+      </div>
+
+      <!-- 11 -->
+      <div class="tl-step">
+        <div class="tl-node">11</div>
+        <div class="tl-body">
+          <div class="tl-title">Notificar o canal Teams</div>
+          <div class="tl-desc">
+            Adaptive Card no canal <strong>CITWEB Melhorias</strong> via webhook Power Automate.
+            Card com: status final do card, FactSet de resultados por CT, versão do ambiente,
+            botão com link para o plano publicado.
+          </div>
+          <div class="tl-detail">POST webhook Power Automate · content-type: application/vnd.microsoft.card.adaptive</div>
+        </div>
+      </div>
+
+    </div><!-- /timeline -->
+  </section>
+
+  <!-- ══ SUB-FLUXO BUG ══ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-tag" style="background:var(--fail-bg);color:var(--fail);border-color:rgba(244,63,94,.4)">Sub-fluxo</span>
+      <h2>Quando um CT é Reprovado</h2>
+      <span class="section-rule"></span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+
+      <div class="bug-flow-grid">
+        <div class="bf-card">
+          <div class="bf-num">01</div>
+          <div class="bf-title">Capturar evidências e contexto completo</div>
+          <div class="bf-desc">
+            Screenshots antes/durante/depois da falha, resposta raw do endpoint e texto exato da mensagem de erro.
+            Registrar também a <strong style="color:var(--text-strong)">descrição completa do CT</strong> e os
+            <strong style="color:var(--text-strong)">critérios de aceite</strong> do card — garantindo que o relatório
+            seja autoexplicativo para o desenvolvedor, sem necessidade de consultar o AzDO para entender o que era esperado.
+            Identificar contraprova quando possível.
+          </div>
+        </div>
+        <div class="bf-card">
+          <div class="bf-num">02</div>
+          <div class="bf-title">Gerar bug report HTML</div>
+          <div class="bf-desc">
+            Relatório estruturado com: critérios de aceite violados, comportamento obtido vs esperado,
+            tabela de passos com a linha de falha destacada em vermelho, hipótese de causa raiz
+            e evidências inline. O relatório deve ser suficiente para que o dev reproduza e corrija
+            sem precisar de explicações adicionais.
+          </div>
+        </div>
+      </div>
+
+      <!-- gate -->
+      <div class="tl-gate" style="margin:2px 0">
+        <div class="tl-gate-inner">
+          <div class="gate-icon">⏸</div>
+          <div class="gate-text">
+            <div class="gate-label">Gate — Confirmação obrigatória</div>
+            <div class="gate-desc">
+              Apresentar o bug report ao Wesley e aguardar confirmação explícita
+              ("é bug", "confirmo", "pode abrir") antes de criar qualquer item no AzDO.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bug-flow-grid">
+        <div class="bf-card">
+          <div class="bf-num">03</div>
+          <div class="bf-title">Consultar PBI pai</div>
+          <div class="bf-desc">Copiar <code>AreaPath</code> e <code>IterationPath</code> exatos do card pai via API — nunca usar <code>"CITWEB"</code> como raiz.</div>
+        </div>
+        <div class="bf-card">
+          <div class="bf-num">04</div>
+          <div class="bf-title">Criar task Bug no AzDO</div>
+          <div class="bf-desc">Tipo Task, título <code>[BUG] CT-XXX — descrição</code>, link Hierarchy-Reverse para o PBI, tag <code>rotina</code>.</div>
+        </div>
+        <div class="bf-card">
+          <div class="bf-num">05</div>
+          <div class="bf-title">Anexar evidências</div>
+          <div class="bf-desc">Upload via <code>/wit/attachments</code> (octet-stream) → vincular URL retornada como <code>AttachedFile</code> na task.</div>
+        </div>
+        <div class="bf-card">
+          <div class="bf-num">06</div>
+          <div class="bf-title">Comentar e notificar</div>
+          <div class="bf-desc">Na task: mencionar o dev assignado. No PBI: mencionar <code>@fabiola.costa</code> informando o registro do bug.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ RESULTADOS ══ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-tag" style="background:var(--ok-bg);color:var(--ok);border-color:rgba(34,211,160,.35)">Resultados</span>
+      <h2>O Que Foi Alcançado</h2>
+      <span class="section-rule"></span>
+    </div>
+
+    <div class="results-grid">
+      <div class="result-card">
+        <div class="result-icon">📋</div>
+        <div class="result-title">Cobertura de cards</div>
+        <ul class="result-list">
+          <li>30+ PBIs e Bugs cobertos (Sprints 4–9)</li>
+          <li>Todas as seguradoras ativas testadas</li>
+          <li>BUG Bash importado: MAPFRE + Allianz (WI 7070–7084)</li>
+          <li>Planos publicados como dashboards interativos</li>
+        </ul>
+      </div>
+
+      <div class="result-card">
+        <div class="result-icon">🤖</div>
+        <div class="result-title">Automação acumulada</div>
+        <ul class="result-list">
+          <li>241 CTs automatizados — regressivo CITNET AXA</li>
+          <li>4 scripts orquestrados (Nacional, Internacional, Waves 2-3-4, Completo)</li>
+          <li>Dashboard com filtros, carousel e zoom</li>
+          <li>Multi-ambiente: AXA HML e AXA Alfa via <code>CITNET_ENV</code></li>
+        </ul>
+      </div>
+
+      <div class="result-card">
+        <div class="result-icon">🔍</div>
+        <div class="result-title">Bugs críticos encontrados</div>
+        <ul class="result-list">
+          <li>BUG-7607 <span class="badge-inline badge-crit">Critical</span> — campos DM/DC ausentes HDI-YELUM RCV</li>
+          <li>BUG-7608 <span class="badge-inline badge-high">High</span> — CITNET retornava CC expirada (cálculo errado)</li>
+          <li>WI-7572 <span class="badge-inline badge-high">High</span> — Aprovação com 0 averbações trava registro</li>
+          <li>BUG-7196 — CNPJ alfanumérico não corrigido em Caixas Postais</li>
+        </ul>
+      </div>
+
+      <div class="result-card">
+        <div class="result-icon">📐</div>
+        <div class="result-title">Plano CNPJ Alfanumérico</div>
+        <ul class="result-list">
+          <li>182 CTs no total (162 CITWEB + 20 CITNET)</li>
+          <li>Todos os módulos: Nacional, Internacional, Conversor, WI/Siscomex</li>
+          <li>Pares padrão/alfanumérico por funcionalidade</li>
+          <li>Scripts de escrita incremental por lote de CTs</li>
+        </ul>
+      </div>
+
+      <div class="result-card">
+        <div class="result-icon">📡</div>
+        <div class="result-title">Pipeline de publicação</div>
+        <ul class="result-list">
+          <li>GitHub Pages como hosting de evidências</li>
+          <li>Comentários HTML ricos no AzDO com imagens</li>
+          <li>Adaptive Cards automáticos no Teams</li>
+          <li>Fluxo de reteste documentado: BUG-7521 e BUG-7522 (MITSUI Alfa)</li>
+        </ul>
+      </div>
+
+      <div class="result-card">
+        <div class="result-icon">📊</div>
+        <div class="result-title">Qualidade dos artefatos</div>
+        <ul class="result-list">
+          <li>Template canônico dark-theme estabilizado (pbi-6841)</li>
+          <li>Accordion CT com toggle expand/collapse e contador dinâmico</li>
+          <li>Galeria de evidências por CT com thumbnails</li>
+          <li>Contraprovas lado a lado nos bug reports</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ DIFICULDADES ══ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-tag" style="background:var(--warn-bg);color:var(--warn);border-color:rgba(251,191,36,.35)">Aprendizados</span>
+      <h2>Dificuldades e Como Foram Resolvidas</h2>
+      <span class="section-rule"></span>
+    </div>
+
+    <div class="challenges">
+
+      <div class="challenge ch-fail">
+        <div class="ch-num">01</div>
+        <div>
+          <div class="ch-title">Playwright local não funciona no Windows</div>
+          <div class="ch-desc">Scripts Python com Chromium bundled falhavam com timeout de 180s — problema de isolamento do ambiente Windows com EDR/XDR corporativo.</div>
+          <div class="ch-resolution">Resolvido: migração total para Playwright MCP. Nunca mais script local.</div>
+        </div>
+      </div>
+
+      <div class="challenge ch-warn">
+        <div class="ch-num">02</div>
+        <div>
+          <div class="ch-title">Falsos positivos na classificação de CTs</div>
+          <div class="ch-desc">Sistema bloqueava por razão errada — ex: duplicidade de data mascarava o erro de vigência que o CT realmente testava (BUG-6717, CT-CCV-006). CT era marcado como PASSOU, mas pelo motivo errado.</div>
+          <div class="ch-resolution">Resolvido: limpeza obrigatória de grade antes de cada CT de bloqueio + verificação explícita do texto da mensagem de erro antes de classificar.</div>
+        </div>
+      </div>
+
+      <div class="challenge ch-warn">
+        <div class="ch-num">03</div>
+        <div>
+          <div class="ch-title">PowerShell bloqueado pelo EDR/XDR corporativo</div>
+          <div class="ch-desc">Comandos como <code>IEX</code>, <code>EncodedCommand</code> e execução de Base64 são bloqueados pelo antivírus corporativo. Scripts que pareciam simples falhavam silenciosamente.</div>
+          <div class="ch-resolution">Resolvido: código limpo, auditável, com comentários e sem ofuscação. <code>-ExecutionPolicy Unrestricted</code> em vez de Bypass. Nunca mais 1s entre comandos.</div>
+        </div>
+      </div>
+
+      <div class="challenge ch-info">
+        <div class="ch-num">04</div>
+        <div>
+          <div class="ch-title">Massa de dados incompleta bloqueando CTs</div>
+          <div class="ch-desc">CTs paravam por falta de apólice, CC, subgrupo ou usuário. Aguardar o time de infra atrasava dias inteiros de execução.</div>
+          <div class="ch-resolution">Resolvido: criar a massa diretamente via banco HML (query SQL) ou pela própria UI do CITWEB, sem depender de terceiros.</div>
+        </div>
+      </div>
+
+      <div class="challenge ch-info">
+        <div class="ch-num">05</div>
+        <div>
+          <div class="ch-title">AzDO sem permissão de Test Management</div>
+          <div class="ch-desc">PAT sem acesso à área de Test Plans — impossível criar suítes e test cases via API no Azure DevOps Test Management.</div>
+          <div class="ch-resolution">Alternativa validada: planos HTML no GitHub Pages com dashboards interativos, rastreados por comentário no card AzDO. Solução mais rica visualmente que os test plans nativos.</div>
+        </div>
+      </div>
+
+      <div class="challenge ch-gate">
+        <div class="ch-num">06</div>
+        <div>
+          <div class="ch-title">Card criado no board errado no AzDO</div>
+          <div class="ch-desc">Em 15-16/06/2026 um card Bug foi criado com <code>AreaPath = "CITWEB"</code> (raiz) em vez do AreaPath do PBI pai — ficou no board errado, invisível para o time.</div>
+          <div class="ch-resolution">Resolvido: antes de criar qualquer card filho, consultar o PBI pai via API e copiar o AreaPath e IterationPath exatos. Regra gravada como bloqueante no processo.</div>
+        </div>
+      </div>
+
+      <div class="challenge ch-ok">
+        <div class="ch-num">07</div>
+        <div>
+          <div class="ch-title">Escala do plano CNPJ alfanumérico</div>
+          <div class="ch-desc">182 CTs cobrindo mais de 40 telas diferentes — módulo por módulo, cada campo com par padrão e alfanumérico. Volume inviável de escrever manualmente.</div>
+          <div class="ch-resolution">Solução: mapeamento de tela via MCP antes de cada bloco → rascunho assistido → revisão individual → scripts de gravação incremental por lote. Processo iterativo sem acúmulo.</div>
+        </div>
+      </div>
+
+      <div class="challenge ch-ok">
+        <div class="ch-num">08</div>
+        <div>
+          <div class="ch-title">Navegação em telas com iframes e comportamentos dinâmicos</div>
+          <div class="ch-desc">
+            Formulários dentro de iframes (<code>CondicoesComerciais59.aspx</code>), botões que são <code>&lt;a&gt;</code> em vez de <code>&lt;button&gt;</code>,
+            postbacks após <code>select_option()</code>, modais Bootstrap invisíveis ao click normal do Playwright.
+          </div>
+          <div class="ch-resolution">Resolvido: mapeamento de cada tela antes de escrever os CTs. Seletores exatos documentados por módulo. Padrões específicos registrados na memória e reutilizados.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="footer">
+    <div class="footer-left">Fluxo desenvolvido e refinado ao longo das Sprints 4–9 · CITWEB/CITNET · NStech</div>
+    <div class="footer-right">
+      <span>Wesley Moreira</span> &nbsp;×&nbsp; <span>Claude Sonnet</span>
+    </div>
+  </footer>
+
+  </div><!-- /tab-fluxo -->
+
+  <!-- ══ TAB 2: MANUAL ══ -->
+  <div id="tab-manual" class="tab-panel">
+
+    <!-- hero manual -->
+    <div class="manual-hero">
+      <p class="hero-eyebrow" style="margin-bottom:16px">Guia de adoção · Qualquer projeto</p>
+      <h1>Como usar este setup<br>no <em style="font-style:normal;color:var(--accent)">seu</em> projeto</h1>
+      <p>
+        Este manual explica como replicar a metodologia QA + IA que desenvolvemos no CITWEB/CITNET
+        em outros projetos — independente de stack, seguradora ou sistema. Os princípios são universais;
+        apenas os detalhes de configuração mudam.
+      </p>
+    </div>
+
+    <!-- o que é / o que não é -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-tag">Visão geral</span>
+        <h2>O que é este setup</h2>
+        <span class="section-rule"></span>
+      </div>
+      <div class="callout" style="margin-bottom:20px">
+        <strong>Claude Code</strong> atua como um par de QA que lê cards, navega na aplicação real,
+        escreve casos de teste, executa via Playwright e gera todos os artefatos — mas
+        <strong>nunca age sozinho em pontos críticos</strong>. Gates de aprovação garantem que
+        o QA humano valida antes de qualquer publicação no Azure DevOps ou notificação ao time.
+      </div>
+      <div class="context-grid">
+        <div class="ctx-card">
+          <div class="ctx-card-label">O que ele faz</div>
+          <ul class="result-list" style="margin-top:4px">
+            <li>Lê e interpreta cards do Azure DevOps</li>
+            <li>Navega na aplicação via Playwright MCP</li>
+            <li>Escreve CTs com passos precisos e reais</li>
+            <li>Gera planos HTML interativos</li>
+            <li>Executa testes e captura evidências</li>
+            <li>Publica resultados e notifica o time</li>
+          </ul>
+        </div>
+        <div class="ctx-card">
+          <div class="ctx-card-label">O que ele NÃO é</div>
+          <ul class="result-list" style="margin-top:4px">
+            <li style="color:var(--text-muted)">Não substitui o julgamento do QA</li>
+            <li style="color:var(--text-muted)">Não publica sem aprovação do responsável</li>
+            <li style="color:var(--text-muted)">Não inventa dados — confirma antes de assumir</li>
+            <li style="color:var(--text-muted)">Não cria bugs no AzDO sem confirmação humana</li>
+            <li style="color:var(--text-muted)">Não sabe regras de negócio que não foram ensinadas</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- pré-requisitos -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-tag">Pré-requisitos</span>
+        <h2>O que você precisa ter instalado</h2>
+        <span class="section-rule"></span>
+      </div>
+      <div class="prereq-grid">
+        <div class="prereq-card">
+          <div class="prereq-icon">⚡</div>
+          <div class="prereq-title">Claude Code CLI</div>
+          <div class="prereq-desc">O CLI da Anthropic. Instalação via <code>npm i -g @anthropic-ai/claude-code</code>. Requer conta com acesso ao modelo.</div>
+        </div>
+        <div class="prereq-card">
+          <div class="prereq-icon">🎭</div>
+          <div class="prereq-title">Playwright MCP</div>
+          <div class="prereq-desc">Servidor MCP que permite ao Claude navegar no browser. Configurado no arquivo <code>.mcp.json</code> do projeto.</div>
+        </div>
+        <div class="prereq-card">
+          <div class="prereq-icon">🔑</div>
+          <div class="prereq-title">PAT do Azure DevOps</div>
+          <div class="prereq-desc">Token de acesso pessoal com permissões de leitura de work items, escrita de comentários e upload de attachments.</div>
+        </div>
+        <div class="prereq-card">
+          <div class="prereq-icon">🐍</div>
+          <div class="prereq-title">Python 3.x</div>
+          <div class="prereq-desc">Para scripts de automação, geração de HTML e publicação no GitHub Pages. Libs: <code>openpyxl</code>, <code>requests</code>.</div>
+        </div>
+        <div class="prereq-card">
+          <div class="prereq-icon">📦</div>
+          <div class="prereq-title">Repositório GitHub</div>
+          <div class="prereq-desc">Para hospedar os planos de teste via GitHub Pages. Pode ser privado com Pages habilitado.</div>
+        </div>
+        <div class="prereq-card">
+          <div class="prereq-icon">💻</div>
+          <div class="prereq-title">PowerShell ou bash</div>
+          <div class="prereq-desc">Para chamadas à API do AzDO e automações de upload. No Windows: PowerShell com <code>-ExecutionPolicy Unrestricted</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- skills -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-tag">Skills</span>
+        <h2>O que são e como usar</h2>
+        <span class="section-rule"></span>
+      </div>
+      <p style="font-size:.9rem;color:var(--text);margin-bottom:20px;line-height:1.65">
+        Skills são arquivos <code>.md</code> que ensinam ao Claude um conjunto de regras, formatos
+        e comportamentos para uma atividade específica. Ficam em
+        <code>~/.claude/commands/</code> e podem ser invocadas com <code>/nome-da-skill</code>
+        ou ativadas automaticamente quando o contexto corresponde.
+      </p>
+
+      <div class="skill-card">
+        <span class="skill-badge">qa-expert</span>
+        <div>
+          <div class="skill-name">QA Expert — Planejamento</div>
+          <div class="skill-desc">Define o formato completo de um plano de teste: seções obrigatórias, convenção de IDs, prioridades, grupos, subgrupos, critérios de aprovação, riscos. É a fonte de verdade para qualquer plano gerado.</div>
+          <div class="skill-when">Quando usar: ao criar plano de teste, analisar PBI/Bug, definir escopo e CTs de um card.</div>
+        </div>
+      </div>
+
+      <div class="skill-card sk-warn" style="margin-top:10px">
+        <span class="skill-badge sk-warn">validacao-testes</span>
+        <div>
+          <div class="skill-name">Validação de Testes — Execução</div>
+          <div class="skill-desc">Define o fluxo de execução: como navegar na aplicação, quando tirar screenshot, como classificar cada resultado (aprovado/reprovado/bloqueado), o que fazer ao encontrar um CT reprovado, formato das evidências.</div>
+          <div class="skill-when">Quando usar: ao executar CTs, capturar evidências, registrar resultados, gerar bug report.</div>
+        </div>
+      </div>
+
+      <div class="skill-card sk-ok" style="margin-top:10px">
+        <span class="skill-badge sk-ok">Skill de domínio</span>
+        <div>
+          <div class="skill-name">Skill específica do seu projeto</div>
+          <div class="skill-desc">Você cria uma skill com as regras de negócio, fluxos e nomenclaturas do seu sistema. No CITWEB/CITNET chamamos de <code>citweb-expert</code>. No seu projeto pode ser <code>meu-sistema-expert</code>. Essa skill descreve o sistema, suas telas, seus módulos e regras de negócio relevantes para o QA.</div>
+          <div class="skill-when">Quando usar: sempre que o Claude precisar entender o contexto do seu sistema para escrever CTs corretos.</div>
+        </div>
+      </div>
+
+      <!-- callout: fonte + manuais -->
+      <div style="margin-top:16px;background:var(--card-2);border:1px solid var(--border);border-left:3px solid var(--ok);border-radius:8px;padding:20px 22px">
+        <div style="font-size:.8rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ok);margin-bottom:10px">Dica — Deixe o Claude aprender sozinho</div>
+        <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:14px">
+          Se o seu projeto tiver <strong style="color:var(--text-strong)">código-fonte, manuais, documentação ou arquivos de features</strong>
+          disponíveis, você não precisa descrever tudo manualmente na skill. Basta instruir o Claude a ler
+          esses materiais antes de agir — ele extrai as regras de negócio, fluxos e comportamentos sozinho.
+          Quanto mais material disponível, mais precisa é a geração dos CTs, sem que o QA precise documentar o sistema.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <div style="font-size:.75rem;font-family:var(--mono);color:var(--text-muted);margin-bottom:8px">No CLAUDE.md do projeto</div>
+            <div class="step-code" style="margin:0;font-size:.75rem"><span class="cm"># Fontes de verdade — ler antes de agir</span>
+<span class="hl">- Manuais:</span> <span class="t-val">manuais/</span>  (Markdown ou PDF)
+<span class="hl">- Código:</span>   <span class="t-val">src/</span>      (regras de negócio)
+<span class="hl">- Features:</span> <span class="t-val">features/</span> (comportamentos esperados)
+<span class="hl">- Swagger:</span>  <span class="t-val">docs/api/</span> (contratos de API)</div>
+          </div>
+          <div>
+            <div style="font-size:.75rem;font-family:var(--mono);color:var(--text-muted);margin-bottom:8px">Na skill de domínio</div>
+            <div class="step-code" style="margin:0;font-size:.75rem"><span class="cm"># Instrução na skill</span>
+<span class="t-sec">## Antes de gerar qualquer CT</span>
+1. Ler <span class="hl">manuais/</span> — entender fluxos
+2. Ler <span class="hl">features/</span> — comportamentos
+3. Grep em <span class="hl">src/</span> — confirmar regras
+4. Só então rascunhar passos</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:10px">
+          <div style="flex:1;min-width:180px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 14px">
+            <div style="font-size:.75rem;color:var(--ok);font-weight:600;margin-bottom:4px">Código-fonte disponível</div>
+            <div style="font-size:.8rem;color:var(--text);line-height:1.5">Claude lê os controllers, services e validators para entender as regras sem que o QA precise explicá-las.</div>
+          </div>
+          <div style="flex:1;min-width:180px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 14px">
+            <div style="font-size:.75rem;color:var(--ok);font-weight:600;margin-bottom:4px">Manuais em Markdown ou PDF</div>
+            <div style="font-size:.8rem;color:var(--text);line-height:1.5">Claude extrai fluxos, campos obrigatórios e exceções diretamente da documentação do sistema.</div>
+          </div>
+          <div style="flex:1;min-width:180px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 14px">
+            <div style="font-size:.75rem;color:var(--ok);font-weight:600;margin-bottom:4px">Swagger / OpenAPI</div>
+            <div style="font-size:.8rem;color:var(--text);line-height:1.5">Claude lê os contratos de API para gerar CTs de integração com campos, tipos e respostas corretas.</div>
+          </div>
+          <div style="flex:1;min-width:180px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 14px">
+            <div style="font-size:.75rem;color:var(--ok);font-weight:600;margin-bottom:4px">Features / BDD</div>
+            <div style="font-size:.8rem;color:var(--text);line-height:1.5">Arquivos <code>.feature</code> com cenários Gherkin são a fonte mais direta — Claude converte em CTs estruturados automaticamente.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- adaptando ao seu projeto -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-tag">Configuração</span>
+        <h2>Adaptando ao seu projeto em 5 passos</h2>
+        <span class="section-rule"></span>
+      </div>
+      <div class="step-list">
+
+        <div class="step-item">
+          <div class="step-n">1</div>
+          <div>
+            <div class="step-title">Crie o arquivo <code>CLAUDE.md</code> do projeto</div>
+            <div class="step-desc">
+              O <code>CLAUDE.md</code> é lido automaticamente pelo Claude a cada conversa.
+              Nele você coloca as regras que se aplicam sempre: qual sistema é, qual o ambiente de HML,
+              como navegar no sistema, quais manuais consultar antes de agir.
+            </div>
+            <div class="step-code"><span class="cm"># CLAUDE.md — MeuProjeto</span>
+
+<span class="t-sec">## Regras sempre ativas</span>
+<span class="hl">- Playwright MCP sempre</span> — nunca scripts locais
+<span class="hl">- Navegar por clique</span> — login → menu → tela (nunca URL direta)
+<span class="hl">- Evidências obrigatórias</span> — screenshot em toda ação relevante
+<span class="hl">- features/ é a fonte de verdade</span> — ler antes de documentar fluxo
+<span class="hl">- Nunca publicar sem revisão</span> — apresentar ao responsável antes de push
+
+<span class="t-sec">## Auto-aplicação de skills</span>
+<span class="cm"># Planejamento de testes</span>
+Ler: <span class="hl">~/.claude/commands/qa-expert.md</span>
+
+<span class="cm"># Execução e evidências</span>
+Ler: <span class="hl">~/.claude/commands/validacao-testes.md</span></div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-n">2</div>
+          <div>
+            <div class="step-title">Configure o Playwright MCP no <code>.mcp.json</code></div>
+            <div class="step-desc">
+              Crie ou edite o arquivo <code>.mcp.json</code> na raiz do projeto com a configuração
+              do servidor Playwright. Isso permite ao Claude abrir o browser, clicar, preencher
+              campos e tirar screenshots da aplicação real.
+            </div>
+            <div class="step-code">{
+  <span class="hl">"mcpServers"</span>: {
+    <span class="hl">"playwright"</span>: {
+      <span class="t-val">"command"</span>: <span class="t-val">"npx"</span>,
+      <span class="t-val">"args"</span>: [<span class="t-val">"@playwright/mcp@latest"</span>]
+    }
+  }
+}</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-n">3</div>
+          <div>
+            <div class="step-title">Salve as credenciais no <code>.env</code></div>
+            <div class="step-desc">
+              Crie um arquivo <code>.env</code> na raiz com o PAT do AzDO e o token do GitHub.
+              O Claude lê este arquivo para fazer chamadas de API sem expor credenciais no código.
+              Nunca commite o <code>.env</code> — adicione ao <code>.gitignore</code>.
+            </div>
+            <div class="step-code"><span class="cm"># .env</span>
+<span class="hl">AZDO_PAT</span>=<span class="t-val">seu_personal_access_token_aqui</span>
+<span class="hl">GIT_PAT</span>=<span class="t-val">seu_github_token_aqui</span>
+<span class="hl">AZDO_ORG</span>=<span class="t-val">SuaOrganizacao</span>
+<span class="hl">AZDO_PROJECT</span>=<span class="t-val">SeuProjeto</span></div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-n">4</div>
+          <div>
+            <div class="step-title">Crie a skill de domínio do seu sistema</div>
+            <div class="step-desc">
+              Crie o arquivo <code>~/.claude/commands/meu-sistema-expert.md</code> ensinando ao Claude
+              o que é o seu sistema: telas principais, módulos, fluxos típicos, regras de negócio
+              críticas e nomenclaturas específicas. <strong style="color:var(--text-strong)">Se o projeto tiver código-fonte, manuais ou documentação acessíveis,
+              instrua o Claude a lê-los diretamente</strong> — ele aprende as regras sem que o QA precise
+              documentar tudo na skill. A skill pode ser mínima e apontar para os arquivos que já existem.
+            </div>
+            <div class="step-code"><span class="t-sec">## Sistema</span>
+Nome: <span class="hl">MeuSistema</span>
+Tipo: <span class="hl">ERP / Portal / API / ...</span>
+Stack: <span class="hl">React + .NET / Laravel / ...</span>
+
+<span class="t-sec">## Ambientes</span>
+HML: <span class="hl">https://hml.meusistema.com</span>
+Credenciais: ver <span class="hl">.env</span>
+
+<span class="t-sec">## Módulos principais</span>
+- <span class="hl">Cadastro de Clientes</span>: fluxo CRUD completo
+- <span class="hl">Pedidos</span>: criação → aprovação → entrega
+- <span class="hl">Relatórios</span>: exportação PDF e Excel
+
+<span class="t-sec">## Regras de negócio críticas</span>
+- Pedido só pode ser aprovado se cliente tiver crédito disponível
+- Data de entrega não pode ser retroativa
+- <span class="cm"># adicione as regras relevantes para o QA</span>
+
+<span class="t-sec">## Convenção de IDs dos CTs</span>
+CT-<span class="hl">CAD</span>-001 → Cadastro
+CT-<span class="hl">PED</span>-001 → Pedidos
+CT-<span class="hl">REL</span>-001 → Relatórios</div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-n">5</div>
+          <div>
+            <div class="step-title">Configure a pasta de planos e o script de publicação</div>
+            <div class="step-desc">
+              Crie a estrutura de pastas para os planos e copie o script <code>publicar.py</code>
+              que faz push para o GitHub Pages. Adapte apenas as variáveis de repositório e sprint.
+              A estrutura de pastas é o único ponto que precisa ser ajustado por projeto.
+            </div>
+            <div class="step-code">planos-de-teste/
+  docs/
+    sprint-1-meuprojeto/
+      bug-001/
+        index.html      <span class="cm">← plano de teste HTML</span>
+        evidencias/
+          CT-CAD-001/   <span class="cm">← screenshots por CT</span>
+          CT-PED-002/
+    sprint-2-meuprojeto/
+      pbi-050/
+        index.html</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- scripts de automação -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-tag">Automação</span>
+        <h2>Scripts que o Claude alimenta automaticamente</h2>
+        <span class="section-rule"></span>
+      </div>
+      <p style="font-size:.9rem;color:var(--text);margin-bottom:20px;line-height:1.65">
+        A cada CT executado via Playwright MCP, o Claude pode gerar em paralelo um script Python
+        que reproduz aquele fluxo. Com o tempo, esses scripts se acumulam e formam um
+        regressivo confiável — sem esforço extra do QA.
+      </p>
+
+      <!-- fluxo de vida do script -->
+      <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:0;align-items:center;margin-bottom:24px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;text-align:center">
+          <div style="font-size:1.4rem;margin-bottom:6px">🖱️</div>
+          <div style="font-size:.85rem;font-weight:600;color:var(--text-strong);margin-bottom:4px">CT executado<br>manualmente</div>
+          <div style="font-size:.75rem;color:var(--text-muted)">Playwright MCP<br>passo a passo</div>
+        </div>
+        <div style="text-align:center;padding:0 8px;color:var(--accent);font-size:1.2rem">→</div>
+        <div style="background:var(--card);border:1px solid var(--accent-dim);border-radius:8px;padding:16px 18px;text-align:center">
+          <div style="font-size:1.4rem;margin-bottom:6px">📝</div>
+          <div style="font-size:.85rem;font-weight:600;color:var(--text-strong);margin-bottom:4px">Script gerado<br>em paralelo</div>
+          <div style="font-family:var(--mono);font-size:.7rem;color:var(--accent)">_scripts/capturar_ct001.py</div>
+        </div>
+        <div style="text-align:center;padding:0 8px;color:var(--accent);font-size:1.2rem">→</div>
+        <div style="background:var(--card);border:1px solid var(--ok-bg);border-radius:8px;padding:16px 18px;text-align:center;border-color:rgba(34,211,160,.3)">
+          <div style="font-size:1.4rem;margin-bottom:6px">♻️</div>
+          <div style="font-size:.85rem;font-weight:600;color:var(--text-strong);margin-bottom:4px">Promovido ao<br>regressivo</div>
+          <div style="font-family:var(--mono);font-size:.7rem;color:var(--ok)">_regressivo/ (2+ sprints PASS)</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+        <div class="ctx-card">
+          <div class="ctx-card-label">O que o Claude gera</div>
+          <ul class="result-list" style="margin-top:6px">
+            <li>Script Python com <code>playwright.sync_api</code></li>
+            <li>Login, navegação e ações reais do CT</li>
+            <li>Captura de screenshot por passo relevante</li>
+            <li>Verificação da mensagem de resultado</li>
+            <li>Classificação automática: PASS / FAIL</li>
+          </ul>
+        </div>
+        <div class="ctx-card">
+          <div class="ctx-card-label">Quando reusar um script existente</div>
+          <ul class="result-list" style="margin-top:6px">
+            <li>Mesmo fluxo ou tela já coberta antes</li>
+            <li>Reteste de bug corrigido</li>
+            <li>CT de regressão após nova feature</li>
+            <li>Checar o catálogo antes de criar um novo</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- exemplo de estrutura -->
+      <div style="margin-bottom:20px">
+        <div style="font-size:.8rem;font-family:var(--mono);color:var(--text-muted);margin-bottom:8px">Estrutura de pastas sugerida</div>
+        <div class="step-code"><span class="hl">_scripts/</span>
+  <span class="t-val">capturar_ct001_cadastro_cliente.py</span>   <span class="cm">← gerado na sprint 1</span>
+  <span class="t-val">capturar_ct005_aprovacao_pedido.py</span>   <span class="cm">← gerado na sprint 2</span>
+  <span class="t-val">capturar_ct012_relatorio_pdf.py</span>      <span class="cm">← gerado na sprint 2</span>
+
+<span class="hl">_regressivo/</span>
+  <span class="t-val">ct001_cadastro_cliente.py</span>            <span class="cm">← promovido: 2 sprints PASS</span>
+  <span class="t-val">ct005_aprovacao_pedido.py</span>            <span class="cm">← promovido: 3 sprints PASS</span>
+  <span class="t-val">rodar_regressivo_completo.py</span>         <span class="cm">← orquestrador geral</span>
+
+<span class="hl">_catalogo_scripts.md</span>                     <span class="cm">← índice: o que cada script cobre</span></div>
+      </div>
+
+      <!-- catálogo -->
+      <div style="background:var(--gate-bg);border:1px solid rgba(167,139,250,.3);border-radius:8px;padding:18px 20px;margin-bottom:20px">
+        <div style="font-size:.8rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--gate);margin-bottom:10px">Catálogo de scripts — obrigatório manter</div>
+        <p style="font-size:.875rem;color:var(--text);line-height:1.6;margin-bottom:12px">
+          O Claude mantém um arquivo <code>_catalogo_scripts.md</code> com um índice de todos os scripts existentes —
+          o que cada um cobre, quando foi criado e em quais sprints passou. Antes de gerar um novo script,
+          o Claude consulta esse catálogo para evitar duplicação e reaproveitar o que já existe.
+        </p>
+        <div class="step-code" style="font-size:.75rem"><span class="t-sec">## Catálogo de Scripts de Automação</span>
+
+<span class="hl">ct001_cadastro_cliente.py</span>
+  Cobre: Cadastro > Cliente > CRUD completo
+  Sprint: 1 (PASS), 2 (PASS) → promovido ao regressivo
+  Reusar quando: qualquer CT de cadastro de cliente
+
+<span class="hl">ct005_aprovacao_pedido.py</span>
+  Cobre: Pedidos > Aprovação > fluxo gerente
+  Sprint: 2 (PASS), 3 (PASS), 4 (PASS)
+  Reusar quando: reteste de aprovação ou permissões de pedido</div>
+      </div>
+
+      <!-- regra de promoção -->
+      <div class="callout">
+        <strong>Regra de promoção para o regressivo:</strong> um script é movido de <code>_scripts/</code>
+        para <code>_regressivo/</code> quando passa sem alteração em <strong>2 ou mais sprints consecutivas</strong>.
+        A partir daí, é executado automaticamente em toda nova release para garantir que nenhuma entrega
+        quebra o que já funcionava. O orquestrador <code>rodar_regressivo_completo.py</code> executa
+        todos e gera um dashboard HTML com os resultados.
+      </div>
+    </section>
+
+    <!-- princípios universais -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-tag">Princípios</span>
+        <h2>Convenções que funcionam em qualquer projeto</h2>
+        <span class="section-rule"></span>
+      </div>
+      <p style="font-size:.9rem;color:var(--text);margin-bottom:20px;line-height:1.65">
+        Estes princípios foram validados ao longo de 9 sprints e se aplicam
+        independentemente do sistema, da linguagem ou da stack testada.
+      </p>
+      <div class="principle-grid">
+
+        <div class="principle-card">
+          <div class="principle-icon">🖱️</div>
+          <div class="principle-title">Sempre navegar por clique</div>
+          <div class="principle-desc">Nunca usar URL direta para chegar a uma tela. Sempre partir do login e navegar pelo menu como um usuário real faria.</div>
+          <div class="principle-rule">Por quê: URLs internas mudam. O menu é o contrato real de navegação do sistema.</div>
+        </div>
+
+        <div class="principle-card">
+          <div class="principle-icon">📸</div>
+          <div class="principle-title">Screenshot em toda ação relevante</div>
+          <div class="principle-desc">A evidência é obrigatória. Cada CT aprovado ou reprovado precisa de screenshot que mostre claramente o resultado — especialmente a mensagem de sucesso ou erro visível na tela.</div>
+          <div class="principle-rule">Por quê: sem evidência, o resultado não pode ser auditado nem reproduzido.</div>
+        </div>
+
+        <div class="principle-card">
+          <div class="principle-icon">🔍</div>
+          <div class="principle-title">Ler a mensagem de erro, não só o comportamento</div>
+          <div class="principle-desc">Antes de classificar um CT como PASSOU ou FALHOU, verificar qual mensagem exata o sistema retornou. O sistema pode bloquear pela razão errada e o CT passar por motivo incorreto.</div>
+          <div class="principle-rule">Por quê: falsos positivos são mais perigosos que falhas óbvias.</div>
+        </div>
+
+        <div class="principle-card">
+          <div class="principle-icon">⏸️</div>
+          <div class="principle-title">Gates de aprovação antes de publicar</div>
+          <div class="principle-desc">Nunca publicar nada no AzDO (plano, bug, comentário) sem aprovação explícita do responsável. Apresentar sempre antes de agir.</div>
+          <div class="principle-rule">Por quê: publicar informação errada no card do time tem custo alto. Reverter é trabalhoso.</div>
+        </div>
+
+        <div class="principle-card">
+          <div class="principle-icon">🗺️</div>
+          <div class="principle-title">Mapear a tela antes de escrever o CT</div>
+          <div class="principle-desc">Antes de rascunhar qualquer caso de teste, navegar até a tela real via Playwright, tirar snapshot e executar o fluxo pelo menos uma vez. Só então escrever os passos.</div>
+          <div class="principle-rule">Por quê: CTs escritos sem ver a tela têm passos incorretos, labels errados e modais ignorados.</div>
+        </div>
+
+        <div class="principle-card">
+          <div class="principle-icon">🧹</div>
+          <div class="principle-title">Estado limpo antes de cada CT</div>
+          <div class="principle-desc">Cada CT começa em estado limpo — sem dados residuais de execuções anteriores que possam interferir no resultado. Se necessário, incluir um passo explícito de limpeza.</div>
+          <div class="principle-rule">Por quê: dados anteriores podem fazer o sistema bloquear por razão diferente do que o CT testa.</div>
+        </div>
+
+        <div class="principle-card">
+          <div class="principle-icon">❓</div>
+          <div class="principle-title">Nunca deduzir — sempre confirmar</div>
+          <div class="principle-desc">Se qualquer dado estiver faltando (seguradora, número de registro, valor, ambiente), perguntar antes de prosseguir. Jamais preencher com suposição.</div>
+          <div class="principle-rule">Por quê: planos com dados deduzidos precisam ser refeitos. O custo de perguntar é zero.</div>
+        </div>
+
+        <div class="principle-card">
+          <div class="principle-icon">🐛</div>
+          <div class="principle-title">Bug confirmado pelo humano antes do AzDO</div>
+          <div class="principle-desc">Ao encontrar CT reprovado, gerar o bug report HTML e aguardar confirmação explícita do responsável antes de criar qualquer item no AzDO.</div>
+          <div class="principle-rule">Por quê: evita registrar falsos positivos como bugs reais no board do time.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- checklist de início -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-tag">Checklist</span>
+        <h2>Primeiro card do projeto</h2>
+        <span class="section-rule"></span>
+      </div>
+      <p style="font-size:.9rem;color:var(--text);margin-bottom:20px;line-height:1.65">
+        Antes de começar o primeiro ciclo de QA em um projeto novo, verifique estes itens.
+      </p>
+      <div class="checklist">
+        <div class="cl-item"><div class="cl-box"></div>Claude Code instalado e autenticado com sua conta Anthropic</div>
+        <div class="cl-item"><div class="cl-box"></div>Playwright MCP configurado no <code>.mcp.json</code> e testado (abrir uma URL)</div>
+        <div class="cl-item"><div class="cl-box"></div>PAT do Azure DevOps criado com permissões de Work Items (read + write) e Attachments</div>
+        <div class="cl-item"><div class="cl-box"></div>Arquivo <code>.env</code> criado com as credenciais e adicionado ao <code>.gitignore</code></div>
+        <div class="cl-item"><div class="cl-box"></div><code>CLAUDE.md</code> criado na raiz do projeto com as regras do sistema</div>
+        <div class="cl-item"><div class="cl-box"></div>Skill de domínio criada em <code>~/.claude/commands/meu-sistema-expert.md</code></div>
+        <div class="cl-item"><div class="cl-box"></div>Repositório GitHub configurado com GitHub Pages habilitado</div>
+        <div class="cl-item"><div class="cl-box"></div>Script <code>publicar.py</code> adaptado com o repositório e estrutura de pastas do projeto</div>
+        <div class="cl-item"><div class="cl-box"></div>Estrutura de pastas <code>planos-de-teste/docs/sprint-N/</code> criada</div>
+        <div class="cl-item"><div class="cl-box"></div>Acesso ao ambiente HML do sistema confirmado (URL + credenciais de teste)</div>
+        <div class="cl-item"><div class="cl-box"></div>Template HTML do plano de teste adaptado com as cores e nome do projeto</div>
+        <div class="cl-item"><div class="cl-box"></div>Primeiro CT escrito, revisado e aprovado pelo responsável antes de publicar qualquer coisa</div>
+      </div>
+
+      <div class="callout" style="margin-top:20px">
+        <strong>Dica para a primeira sessão:</strong> peça ao Claude para ler o card do AzDO, mapear
+        a tela principal via Playwright e apresentar apenas 1 ou 2 CTs para validação antes de
+        qualquer automação. Isso calibra o formato e as expectativas do time sem investimento alto.
+      </div>
+    </section>
+
+    <!-- footer manual -->
+    <footer class="footer" style="margin-top:64px">
+      <div class="footer-left">Manual de adoção · QA + Claude Code · Metodologia CITWEB/CITNET</div>
+      <div class="footer-right">
+        <span>Wesley Moreira</span> &nbsp;×&nbsp; <span>Claude Sonnet</span>
+      </div>
+    </footer>
+
+  </div><!-- /tab-manual -->
+
+</div>
+
+<script>
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + target).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+</script>

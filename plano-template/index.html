@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Plano de Teste — [PBI/BUG-XXXX] [Nome do Card]</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* ── TOKENS ─────────────────────────────────────────── */
+:root {
+  --bg:         #060c1a;
+  --bg2:        #0e1829;
+  --bg3:        #132035;
+  --border:     #1c3050;
+  --text:       #c4d3e6;
+  --muted:      #4a6280;
+  --head:       #eef2f8;
+  --accent:     #00cba9;
+  --accent2:    #3b82f6;
+  --pass:       #22d3a0;
+  --fail:       #f43f5e;
+  --blocked:    #fbbf24;
+  --pending:    #6b7c99;
+  --radius:     8px;
+  --font:       'Segoe UI', system-ui, sans-serif;
+  --mono:       'Cascadia Code', 'Consolas', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0 }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: .9rem;
+  line-height: 1.6;
+  padding: 0 0 80px;
+}
+a { color: var(--accent); text-decoration: none }
+a:hover { text-decoration: underline }
+
+/* ── TOPBAR ─────────────────────────────────────────── */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-brand { font-weight: 700; font-size: 1rem; color: var(--head) }
+.topbar-brand span { color: var(--accent) }
+.topbar-meta { font-size: .75rem; color: var(--muted) }
+
+/* ── HERO ───────────────────────────────────────────── */
+.hero {
+  background: linear-gradient(135deg, #071122 0%, #0a1730 60%, #071626 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 40px 32px 32px;
+}
+.hero-tag {
+  font-size: .7rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+}
+.hero-title { font-size: 1.75rem; font-weight: 700; color: var(--head); margin-bottom: 6px }
+.hero-sub { color: var(--muted); font-size: .875rem; margin-bottom: 24px }
+
+/* ── METRICS STRIP ──────────────────────────────────── */
+.metrics {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.metric {
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  min-width: 110px;
+}
+.metric-value {
+  font-size: 1.8rem; font-weight: 700; font-family: var(--mono);
+  color: var(--head); font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.metric-value.pass  { color: var(--pass) }
+.metric-value.fail  { color: var(--fail) }
+.metric-value.blk   { color: var(--blocked) }
+.metric-value.pct   { color: var(--accent) }
+.metric-label {
+  font-size: .65rem; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--muted); margin-top: 4px;
+}
+
+/* ── PROGRESS BAR ───────────────────────────────────── */
+.progress-wrap { margin-top: 20px }
+.progress-bar {
+  height: 6px; background: var(--border); border-radius: 99px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+.progress-label {
+  font-size: .7rem; color: var(--muted); margin-top: 6px;
+  display: flex; justify-content: space-between;
+}
+
+/* ── LAYOUT ─────────────────────────────────────────── */
+.page { max-width: 960px; margin: 0 auto; padding: 32px 24px 0 }
+
+/* ── SECTION HEADER ─────────────────────────────────── */
+.section-header {
+  display: flex; align-items: center; gap: 10px;
+  margin: 36px 0 16px;
+}
+.section-header h2 {
+  font-size: 1rem; font-weight: 700; color: var(--head);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.section-line {
+  flex: 1; height: 1px; background: var(--border);
+}
+
+/* ── INFO GRID ──────────────────────────────────────── */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.info-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+.info-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 4px }
+.info-value { font-size: .875rem; color: var(--head) }
+
+/* ── CT BLOCKS ──────────────────────────────────────── */
+.group-title {
+  font-size: .7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--muted); margin: 24px 0 10px;
+}
+.ct-block {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.ct-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.ct-bar:hover { background: var(--bg3) }
+.ct-status {
+  width: 64px; text-align: center;
+  font-size: .65rem; font-weight: 700; letter-spacing: .08em;
+  padding: 3px 0; border-radius: 4px;
+}
+.ct-status.pass    { background: rgba(34,211,160,.12); color: var(--pass) }
+.ct-status.fail    { background: rgba(244,63,94,.12);  color: var(--fail) }
+.ct-status.blocked { background: rgba(251,191,36,.12); color: var(--blocked) }
+.ct-status.pending { background: rgba(107,124,153,.12); color: var(--pending) }
+.ct-id   { font-family: var(--mono); font-size: .8rem; color: var(--accent); white-space: nowrap }
+.ct-name { flex: 1; font-size: .875rem; color: var(--head) }
+.ct-chevron { color: var(--muted); font-size: .8rem; transition: transform .2s }
+.ct-block.open .ct-chevron { transform: rotate(90deg) }
+
+.ct-panel {
+  display: none;
+  border-top: 1px solid var(--border);
+  padding: 16px 20px;
+  font-size: .85rem;
+}
+.ct-block.open .ct-panel { display: block }
+
+.ct-section { margin-bottom: 14px }
+.ct-section-label {
+  font-size: .65rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--muted); margin-bottom: 6px;
+}
+.ct-section p { color: var(--text); margin-bottom: 4px }
+
+ol.passos { padding-left: 20px }
+ol.passos li { color: var(--text); margin-bottom: 3px }
+
+.ct-ev-grid {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+}
+.ct-ev-thumb {
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  cursor: pointer;
+}
+.ct-ev-thumb img { display: block; width: 160px; height: 100px; object-fit: cover }
+.ct-ev-thumb:hover { border-color: var(--accent) }
+.ct-ev-caption {
+  font-size: .65rem; color: var(--muted); text-align: center; padding: 4px;
+  background: var(--bg3);
+}
+
+/* ── LIGHTBOX ───────────────────────────────────────── */
+#lightbox {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.85); z-index: 200;
+  align-items: center; justify-content: center;
+}
+#lightbox.open { display: flex }
+#lightbox img { max-width: 90vw; max-height: 90vh; border-radius: var(--radius) }
+#lightbox-close {
+  position: absolute; top: 16px; right: 24px;
+  font-size: 1.8rem; color: #fff; cursor: pointer;
+  background: none; border: none;
+}
+
+/* ── FOOTER ─────────────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--border);
+  margin-top: 48px;
+  padding: 20px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .72rem; color: var(--muted);
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-brand">qa-ia-toolkit <span>/ plano de teste</span></div>
+  <div class="topbar-meta" id="topbar-meta">...</div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">PBI-XXXX · Sprint N · Meu Sistema</div>
+  <h1 class="hero-title" id="hero-title">Nome do Card / Funcionalidade</h1>
+  <p class="hero-sub">Responsável: QA · Ambiente: HML · Versão: x.y.z</p>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-value" id="m-total">0</div>
+      <div class="metric-label">Total CTs</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value pass" id="m-pass">0</div>
+      <div class="metric-label">Aprovados</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value fail" id="m-fail">0</div>
+      <div class="metric-label">Reprovados</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value blk" id="m-blocked">0</div>
+      <div class="metric-label">Bloqueados</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value pct" id="m-pct">—</div>
+      <div class="metric-label">Aprovação</div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-label">
+      <span id="progress-label-left">Executado: 0 / 0</span>
+      <span id="progress-label-right">0% aprovação</span>
+    </div>
+  </div>
+</header>
+
+<!-- CONTEÚDO -->
+<main class="page">
+
+  <!-- Informações do card -->
+  <div class="section-header">
+    <h2>Informações</h2><div class="section-line"></div>
+  </div>
+  <div class="info-grid">
+    <div class="info-item"><div class="info-label">Card</div><div class="info-value">PBI-XXXX</div></div>
+    <div class="info-item"><div class="info-label">Sprint</div><div class="info-value">Sprint N</div></div>
+    <div class="info-item"><div class="info-label">Sistema</div><div class="info-value">Meu Sistema</div></div>
+    <div class="info-item"><div class="info-label">Ambiente</div><div class="info-value">HML</div></div>
+    <div class="info-item"><div class="info-label">Versão</div><div class="info-value">x.y.z</div></div>
+    <div class="info-item"><div class="info-label">Data execução</div><div class="info-value">DD/MM/AAAA</div></div>
+  </div>
+
+  <!-- Critérios de aceite -->
+  <div class="section-header">
+    <h2>Critérios de Aceite</h2><div class="section-line"></div>
+  </div>
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:8px;font-size:.875rem;color:var(--text)">
+    <p>• CA01 — Descrição do primeiro critério de aceite.</p>
+    <p>• CA02 — Descrição do segundo critério de aceite.</p>
+    <p>• CA03 — Descrição do terceiro critério de aceite.</p>
+  </div>
+
+  <!-- Casos de teste -->
+  <div class="section-header">
+    <h2>Casos de Teste</h2><div class="section-line"></div>
+  </div>
+
+  <!-- GRUPO 1 -->
+  <div class="group-title">Grupo 1 — Nome do Fluxo Principal</div>
+
+  <!-- CT-001 -->
+  <div class="ct-block" data-status="pending">
+    <div class="ct-bar" onclick="toggle(this)">
+      <span class="ct-status pending">PENDENTE</span>
+      <span class="ct-id">CT-XXX-001</span>
+      <span class="ct-name">Fluxo positivo — cenário padrão</span>
+      <span class="ct-chevron">▶</span>
+    </div>
+    <div class="ct-panel">
+      <div class="ct-section">
+        <div class="ct-section-label">Objetivo</div>
+        <p>Verificar que [ação principal] funciona corretamente quando [condição positiva].</p>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Pré-condições</div>
+        <p>• Usuário autenticado com perfil [Perfil].</p>
+        <p>• Registro [X] cadastrado no sistema com status [Y].</p>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Passos</div>
+        <ol class="passos">
+          <li>Acesse o sistema via menu Principal &gt; Módulo.</li>
+          <li>Localize o registro [X] na grid.</li>
+          <li>Clique em [Ação].</li>
+          <li>Preencha o campo [Campo] com [valor].</li>
+          <li>Clique em [Confirmar].</li>
+        </ol>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Resultado Esperado</div>
+        <p>Sistema exibe mensagem "[Mensagem de sucesso]" e o registro aparece com status [Novo Status].</p>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Resultado Obtido</div>
+        <p>—</p>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Evidências</div>
+        <div class="ct-ev-grid" id="ev-ct001">
+          <!-- Adicionar após execução:
+          <div class="ct-ev-thumb" onclick="openLightbox('evidencias/CT-XXX-001/01_login.png')">
+            <img src="evidencias/CT-XXX-001/01_login.png" alt="Login">
+            <div class="ct-ev-caption">01 — Login</div>
+          </div>
+          -->
+          <span style="color:var(--muted);font-size:.8rem">Nenhuma evidência ainda</span>
+        </div>
+      </div>
+    </div>
+  </div><!-- /CT-001 -->
+
+  <!-- CT-002 -->
+  <div class="ct-block" data-status="pending">
+    <div class="ct-bar" onclick="toggle(this)">
+      <span class="ct-status pending">PENDENTE</span>
+      <span class="ct-id">CT-XXX-002</span>
+      <span class="ct-name">Fluxo negativo — campo obrigatório vazio</span>
+      <span class="ct-chevron">▶</span>
+    </div>
+    <div class="ct-panel">
+      <div class="ct-section">
+        <div class="ct-section-label">Objetivo</div>
+        <p>Verificar que o sistema exibe erro de validação quando [campo obrigatório] está vazio.</p>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Passos</div>
+        <ol class="passos">
+          <li>Acesse o módulo.</li>
+          <li>Inicie a ação [X] sem preencher [campo obrigatório].</li>
+          <li>Clique em [Confirmar].</li>
+        </ol>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Resultado Esperado</div>
+        <p>Sistema exibe "[Mensagem de validação]" e não processa a operação.</p>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Resultado Obtido</div>
+        <p>—</p>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Evidências</div>
+        <div class="ct-ev-grid">
+          <span style="color:var(--muted);font-size:.8rem">Nenhuma evidência ainda</span>
+        </div>
+      </div>
+    </div>
+  </div><!-- /CT-002 -->
+
+  <!-- GRUPO 2 -->
+  <div class="group-title" style="margin-top:28px">Grupo 2 — Nome do Fluxo Alternativo</div>
+
+  <!-- CT-003 (exemplo PASS) -->
+  <div class="ct-block" data-status="pass">
+    <div class="ct-bar" onclick="toggle(this)">
+      <span class="ct-status pass">PASS</span>
+      <span class="ct-id">CT-XXX-003</span>
+      <span class="ct-name">Cenário alternativo — [descrever]</span>
+      <span class="ct-chevron">▶</span>
+    </div>
+    <div class="ct-panel">
+      <div class="ct-section">
+        <div class="ct-section-label">Objetivo</div>
+        <p>Verificar que [cenário alternativo] funciona conforme esperado.</p>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Passos</div>
+        <ol class="passos">
+          <li>Passo 1.</li>
+          <li>Passo 2.</li>
+          <li>Passo 3.</li>
+        </ol>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Resultado Esperado</div>
+        <p>[Mensagem ou estado esperado].</p>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Resultado Obtido</div>
+        <p>Sistema exibiu "[Mensagem exata]". Comportamento conforme esperado.</p>
+      </div>
+      <div class="ct-section">
+        <div class="ct-section-label">Evidências</div>
+        <div class="ct-ev-grid">
+          <div class="ct-ev-thumb" onclick="openLightbox('evidencias/CT-XXX-003/01_resultado.png')">
+            <img src="evidencias/CT-XXX-003/01_resultado.png" alt="Resultado" onerror="this.style.display='none'">
+            <div class="ct-ev-caption">01 — Resultado</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /CT-003 -->
+
+</main><!-- /page -->
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span>Gerado com qa-ia-toolkit · <a href="https://github.com/wesleymoreira/qa-ia-toolkit">github.com/wesleymoreira/qa-ia-toolkit</a></span>
+  <span id="footer-date"></span>
+</footer>
+
+<script>
+// ── Accordion ──────────────────────────────────────────
+function toggle(bar) {
+  const block = bar.closest('.ct-block');
+  block.classList.toggle('open');
+}
+
+// ── Lightbox ───────────────────────────────────────────
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox() });
+
+// ── Métricas dinâmicas ─────────────────────────────────
+function calcMetrics() {
+  const blocks = document.querySelectorAll('.ct-block');
+  let total = blocks.length, pass = 0, fail = 0, blocked = 0, pending = 0;
+  blocks.forEach(b => {
+    const s = b.dataset.status;
+    if (s === 'pass')    pass++;
+    else if (s === 'fail')    fail++;
+    else if (s === 'blocked') blocked++;
+    else pending++;
+  });
+  const executed = pass + fail + blocked;
+  const pct = executed ? Math.round(pass / executed * 100) : 0;
+
+  document.getElementById('m-total').textContent   = total;
+  document.getElementById('m-pass').textContent    = pass;
+  document.getElementById('m-fail').textContent    = fail;
+  document.getElementById('m-blocked').textContent = blocked;
+  document.getElementById('m-pct').textContent     = executed ? pct + '%' : '—';
+
+  const fillPct = total ? Math.round(executed / total * 100) : 0;
+  document.getElementById('progress-fill').style.width = fillPct + '%';
+  document.getElementById('progress-label-left').textContent  = `Executado: ${executed} / ${total}`;
+  document.getElementById('progress-label-right').textContent = `${pct}% aprovação`;
+
+  document.getElementById('topbar-meta').textContent =
+    `${pass}✓ ${fail}✗ ${blocked}⊘ ${pending}· — ${pct}% aprovação`;
+}
+
+// ── Footer date ────────────────────────────────────────
+document.getElementById('footer-date').textContent =
+  'Gerado em ' + new Date().toLocaleDateString('pt-BR');
+
+calcMetrics();
+</script>
+</body>
+</html>
