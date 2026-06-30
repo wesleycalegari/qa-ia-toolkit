@@ -766,6 +766,7 @@
         <div class="ctx-card-label">Ferramentas de automação</div>
         <div class="ctx-card-title">Stack operacional</div>
         <div class="chip-list">
+          <span class="chip">Voidr MCP</span>
           <span class="chip">Playwright MCP</span>
           <span class="chip">Python / openpyxl</span>
           <span class="chip">PowerShell</span>
@@ -978,12 +979,26 @@
         <div class="tl-body">
           <div class="tl-title">Executar o plano de teste</div>
           <div class="tl-desc">
-            Execução de todos os cenários via Playwright MCP, navegando pelo menu real.
-            Cada CT recebe screenshot de evidência, classificação (aprovado / reprovado / bloqueado)
-            e o resultado é atualizado no HTML do plano em tempo real.
+            Antes de qualquer execução manual, o <strong>Voidr MCP</strong> é consultado
+            como primeiro passo — se o cenário já existe automatizado na plataforma, ele
+            é executado ali e o Execution ID serve como evidência. Somente se não existir
+            no Voidr a execução cai para o <strong>Playwright MCP</strong>, navegando pelo
+            menu real, capturando screenshots por CT e atualizando o HTML do plano em tempo real.
             Se algum CT reprovar, o sub-fluxo de bug é acionado.
           </div>
-          <div class="tl-detail">Playwright MCP · browser_snapshot · evidencias/ por CT · updateDash()</div>
+          <div class="tl-detail">
+            <strong>Prioridade 1:</strong> Voidr MCP · executions_create_execution · Execution ID como evidência
+            &nbsp;|&nbsp;
+            <strong>Prioridade 2:</strong> Playwright MCP · browser_snapshot · evidencias/ por CT
+          </div>
+          <div style="margin-top:10px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--text)">
+            <strong style="color:var(--gate)">Voidr — métricas de execução</strong><br>
+            <span style="color:var(--text-muted)">1.724 execuções · 10 aplicações · pass rate <strong style="color:var(--text)">25–30%</strong></span><br>
+            <span style="color:var(--text-muted);font-size:.72rem;margin-top:3px;display:block">
+              ⚠ O pass rate reflete instabilidades de ambiente HML, cenários ainda em ajuste
+              e falhas pontuais de execução — não necessariamente defeitos no produto.
+            </span>
+          </div>
         </div>
       </div>
 
@@ -1109,6 +1124,17 @@
           <li>Todas as seguradoras ativas testadas</li>
           <li>BUG Bash importado: MAPFRE + Allianz (WI 7070–7084)</li>
           <li>Planos publicados como dashboards interativos</li>
+        </ul>
+      </div>
+
+      <div class="result-card">
+        <div class="result-icon">⚡</div>
+        <div class="result-title">Voidr MCP — execução automatizada</div>
+        <ul class="result-list">
+          <li>1.724 execuções registradas na plataforma</li>
+          <li>10 aplicações cobertas (CITWEB + CITNET, todas as seguradoras)</li>
+          <li>Pass rate 25–30% — reflete instabilidades de ambiente HML, cenários em ajuste e falhas pontuais de execução</li>
+          <li>Prioridade máxima no fluxo: consultado antes do Playwright em toda execução</li>
         </ul>
       </div>
 
